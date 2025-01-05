@@ -55,3 +55,8 @@ gitlab を再起動する
 ```
 % gitlab-ctl restart
 ```
+
+適当なホストで証明書を取得して反映されているかみる。
+```
+ openssl s_client -showcerts -connect gitlab.home:443 -servername gitlab.home < /dev/null 2>/dev/null | openssl x509 -outform PEM > gitlab.home.crt
+```
