@@ -39,9 +39,9 @@ gitlab-runnner を動かす場合は SANs (Subject Alternative Names) 付きの�
 
 ```
 % cd /etc/gitlab/ssl/
-% openssl req -new -key gitlab.home.key -out gitlab.home.crt
+% openssl req -new -key gitlab.home.key -out gitlab.home.csr
 % echo "subjectAltName = DNS:gitlab.home" > gitlab.home.san
-% openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.crt -out gitlab.home.crt -extfile gitlab.home.san
+% openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.csr -out gitlab.home.crt -extfile gitlab.home.san
 ```
 
 作った証明書(gitlab.home.pem) の中身を見て `X509v3 Subject Alternative Name:` があれば成功。
