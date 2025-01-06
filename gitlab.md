@@ -40,8 +40,8 @@ gitlab-runnner を動かす場合は SANs (Subject Alternative Names) 付きの�
 ```
 % cd /etc/gitlab/ssl/
 % openssl req -new -key gitlab.home.key -out gitlab.home.crt
-% echo "subjectAltName = DNS:gitlab.home" > san.txt
-% openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.crt -out gitlab.home.crt -extfile san.txt
+% echo "subjectAltName = DNS:gitlab.home" > gitlab.home.san
+% openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.crt -out gitlab.home.crt -extfile gitlab.home.san
 ```
 
 作った証明書(gitlab.home.pem) の中身を見て `X509v3 Subject Alternative Name:` があれば成功。
@@ -58,5 +58,20 @@ gitlab を再起動する
 
 適当なホストで証明書を取得して反映されているかみる。
 ```
- openssl s_client -showcerts -connect gitlab.home:443 -servername gitlab.home < /dev/null 2>/dev/null | openssl x509 -outform PEM > gitlab.home.crt
+ % openssl s_client -showcerts -connect gitlab.home:443 -servername gitlab.home < /dev/null 2>/dev/null | openssl x509 -outform PEM > gitlab.home.crt
+ % openssl x509 -text -in gitlab.home.crt -noout
+```
+
+## runner を追加する
+
+```
+% mkdir /etc/gitlab-runner/certs
+% openssl s_client -connect gitlab.home:443 -showcerts < /dev/null | openssl x509 -outform PEM > /etc/gitlab-runner/certs/gitlab.home
+depth=0 C = JP, ST = Tokyo, L = Kita-ku, O = home, CN = gitlab.home
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 C = JP, ST = Tokyo, L = Kita-ku, O = home, CN = gitlab.home
+verify return:1
+DONE
+% 
 ```
