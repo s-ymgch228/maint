@@ -64,14 +64,42 @@ gitlab を再起動する
 
 ## runner を追加する
 
+自己証明書を使っていると登録時にエラーになる。
+
+```
+root@runner0:~# gitlab-runner register  --url https://gitlab.home  --token glrt-t1_RY8rtprFQBUDhCS2BSYZ
+Runtime platform                                    arch=amd64 os=linux pid=6269 revision=3153ccc6 version=17.7.0
+Running in system-mode.                            
+                                                   
+Enter the GitLab instance URL (for example, https://gitlab.com/):
+[https://gitlab.home]: 
+ERROR: Verifying runner... failed                   runner=t1_RY8rtp status=couldn't execute POST against https://gitlab.home/api/v4/runners/verify: Post "https://gitlab.home/api/v4/runners/verify": tls: failed to verify certificate: x509: certificate signed by unknown authority
+PANIC: Failed to verify the runner.                
+root@runner0:~# 
+```
+
 ```
 % mkdir /etc/gitlab-runner/certs
-% openssl s_client -connect gitlab.home:443 -showcerts < /dev/null | openssl x509 -outform PEM > /etc/gitlab-runner/certs/gitlab.home
+% openssl s_client -connect gitlab.home:443 -showcerts < /dev/null | openssl x509 -outform PEM > /etc/gitlab-runner/certs/gitlab.home.crt
 depth=0 C = JP, ST = Tokyo, L = Kita-ku, O = home, CN = gitlab.home
 verify error:num=18:self-signed certificate
 verify return:1
 depth=0 C = JP, ST = Tokyo, L = Kita-ku, O = home, CN = gitlab.home
 verify return:1
 DONE
+% gitlab-runner register  --url https://gitlab.home  --token glrt-t1_RY8rtprFQBUDhCS2BSYZ
+Runtime platform                                    arch=amd64 os=linux pid=6307 revision=3153ccc6 version=17.7.0
+Running in system-mode.                            
+                                                   
+Enter the GitLab instance URL (for example, https://gitlab.com/):
+[https://gitlab.home]: 
+Verifying runner... is valid                        runner=t1_RY8rtp
+Enter a name for the runner. This is stored only in the local config.toml file:
+[runner0]: 
+Enter an executor: instance, custom, parallels, docker, kubernetes, docker+machine, docker-autoscaler, shell, ssh, virtualbox, docker-windows:
+shell
+Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
+ 
+Configuration (with the authentication token) was saved in "/etc/gitlab-runner/config.toml" 
 % 
 ```
