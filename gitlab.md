@@ -78,6 +78,9 @@ PANIC: Failed to verify the runner.
 root@runner0:~# 
 ```
 
+`/etc/gitlab-runner/certs` の下に `<FQDN>.crt` のファイル名でサーバから取得した証明書をおく。
+パスとファイル名は固定で変更不可。
+
 ```
 % mkdir /etc/gitlab-runner/certs
 % openssl s_client -connect gitlab.home:443 -showcerts < /dev/null | openssl x509 -outform PEM > /etc/gitlab-runner/certs/gitlab.home.crt
