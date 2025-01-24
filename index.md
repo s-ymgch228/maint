@@ -1,4 +1,4 @@
-# サーバ類のメンテナンス作業ログを残しておくところ。
+# メンテナンス作業ログ置き場
 
 - [gitlab](doc/gitlab.md)
 - [proxmox](proxmox.md)
