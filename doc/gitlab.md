@@ -24,21 +24,23 @@ Postfix は最初から入っていてインストールされないが一応コ
 curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
 ```
 
-EXTERNAL_URL に指定している `gitlab.home` はインターネット側から名前解決できないのでインストール時にエラーが出る。
-エラーが出ると言っても最後でコケているだけで動作に影響はしていないようなのでスルーしていい(?)。
-本来なら EXTERNAL_URL を指定せずに http を使う状態でインストールしてその後 https 化する方法もある。(が、試してはいない)
+公式では `EXTERNAL_URL=` に参照される URL を指定するように書かれているが、ここで指定する URL はインターネットから疎通性があるものでないといけない。
+指定すると Let's encrypt で証明書が発行される。内向きの gitlab を立てるのでここでは指定しない。
 
 ```
-sudo EXTERNAL_URL="https://gitlab.home" apt install -y gitlab-ee
+% apt install -y gitlab-ee
 ```
 
-## SSL 置き換え
+## SSL 証明書配置
 
-gitlab-runnner を動かす場合は SANs (Subject Alternative Names) 付きの証明書がいるらしいので作り直す。
-作り直した証明書のパスは`/etc/gitlab/ssl/<FQDN>.crt` 固定
+`/etc/gitlab/gitlab.rb` の `external_url` に `https://` から始まる URL を指定すると自己証明書が作られる。
+が、これは gitlab-runner を動かす時に必要な SANs (Subject Alternative Names) がついていないので OpenSSL を使って自作する。
+
+gitlab の証明書を入れておくパスは通常 `/etc/gitlab/ssl/<FQDN>.crt` 固定
 
 ```
 % cd /etc/gitlab/ssl/
+% openssl genrsa -aes256 -out ./gitlab.home.pem 2048 # パスワードを聞かれる
 % openssl req -new -key gitlab.home.key -out gitlab.home.csr
 % echo "subjectAltName = DNS:gitlab.home" > gitlab.home.san
 % openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.csr -out gitlab.home.crt -extfile gitlab.home.san
