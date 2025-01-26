@@ -40,9 +40,28 @@ gitlab の証明書を入れておくパスは通常 `/etc/gitlab/ssl/<FQDN>.crt
 
 ```
 % cd /etc/gitlab/ssl/
-% openssl genrsa -aes256 -out ./gitlab.home.pem 2048 # パスワードを聞かれる
+```
+
+OpenSSL の　genrsa で秘密鍵を作る。パスワードを聞かれるので適当に設定する。このパスワードは `openssl req`, `openssl x509` で聞かれるものなのでわからなくなった時は作り直せばいい。
+
+```
+% openssl genrsa -aes256 -out ./gitlab.home.key 2048
+```
+
+req は作成する証明書に入れるパラメタを記述したやつ。これを実行すると初めに `genrsa` で設定したパスワードを求められる。
+自己証明書なので国別コードと FQDN くらいは設定しておいて、残りは空欄にする。
+```
 % openssl req -new -key gitlab.home.key -out gitlab.home.csr
-% echo "subjectAltName = DNS:gitlab.home" > gitlab.home.san
+```
+
+SANs (Subject Alternative Names) の内容は csr とは別にテキストで用意する。
+
+```
+echo "subjectAltName = DNS:gitlab.home" > gitlab.home.san
+```
+
+csr と san を組み合わせて X509 形式の証明書を作る。
+```
 % openssl x509 -days 3650 -req -signkey gitlab.home.key -in gitlab.home.csr -out gitlab.home.crt -extfile gitlab.home.san
 ```
 
@@ -52,13 +71,25 @@ gitlab の証明書を入れておくパスは通常 `/etc/gitlab/ssl/<FQDN>.crt
 % openssl x509 -text -in gitlab.home.crt -noout
 ```
 
-gitlab を再起動する
+
+## gitlab に https の設定を入れる
+
+gitlab の設定ファイル(?) は `/etc/gitlab/gitlab.rb` にある。
+このファイルのうち `external_url 'http://gitlab.example.com'` の行があるはずなのでここに FQDN を指定する。
+指定する時に "http**s**://" のように指定すると SSL 周りの設定も自動で入る。
 
 ```
-% gitlab-ctl restart
+% grep -E ^external_url /etc/gitlab/gitlab.rb 
+external_url 'https://gitlab.home'
+%
+```
+
+```
+% gitlab-ctl reconfigure
 ```
 
 適当なホストで証明書を取得して反映されているかみる。
+
 ```
  % openssl s_client -showcerts -connect gitlab.home:443 -servername gitlab.home < /dev/null 2>/dev/null | openssl x509 -outform PEM > gitlab.home.crt
  % openssl x509 -text -in gitlab.home.crt -noout
