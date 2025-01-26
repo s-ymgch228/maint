@@ -43,9 +43,12 @@ gitlab の証明書を入れておくパスは通常 `/etc/gitlab/ssl/<FQDN>.crt
 ```
 
 OpenSSL の　genrsa で秘密鍵を作る。パスワードを聞かれるので適当に設定する。このパスワードは `openssl req`, `openssl x509` で聞かれるものなのでわからなくなった時は作り直せばいい。
+`genrsa` はパスワードありの鍵を生成するが nginx ではそのまま扱えないのでパスなしに変換する。（もしかすると初めからパスなしにする方法があるかも？)
+gitlab の場合はパスなしの鍵を `<FQDN>.key` におく必要がある。
 
 ```
-% openssl genrsa -aes256 -out ./gitlab.home.key 2048
+% openssl genrsa -aes256 -out ./gitlab.home.pem 2048
+% openssl rsa -in gitlab.home.pem -out gitlab.home.key
 ```
 
 req は作成する証明書に入れるパラメタを記述したやつ。これを実行すると初めに `genrsa` で設定したパスワードを求められる。
@@ -85,9 +88,12 @@ external_url 'https://gitlab.home'
 ```
 
 反映には reconfigure コマンドが必要。このコマンドは結構時間がかかるので気長に待つ。
+reconfigure 自体は事前に止めておく必要はないが、たまに nginx がうまく起動してこないことがあるので一旦止めてからやる。
 
 ```
+% gitlab-ctl stop
 % gitlab-ctl reconfigure
+% gitlab-ctl start
 ```
 
 適当なホストで証明書を取得して反映されているかみる。
