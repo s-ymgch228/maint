@@ -84,6 +84,8 @@ external_url 'https://gitlab.home'
 %
 ```
 
+反映には reconfigure コマンドが必要。このコマンドは結構時間がかかるので気長に待つ。
+
 ```
 % gitlab-ctl reconfigure
 ```
