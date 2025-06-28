@@ -17,6 +17,10 @@ https://blog.nishi.network/2023/02/12/proxmox7-3-repository/
 特権コンテナにするとコンテナ作成時の `Nesting` のチェックが選択できなくなる。こっちは作成後に付与できるので一度作成した後に
 `Options` -> `Features` を edit で編集してチェックを足す。
 
+そのあとは nfs client のパッケージを入れる、Ubuntu なら `nfs-common` を入れればいい。
+
+    apt install -y nfs-common
+
 ## lxc の root 以外で ping
 
     sudo setcap cap_net_raw+p /bin/ping
