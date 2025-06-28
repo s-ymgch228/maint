@@ -10,6 +10,19 @@ https://blog.nishi.network/2023/02/12/proxmox7-3-repository/
 ` を追加する。
 今はどちらも WebUI 上からできる。
 
+## NFS マウント
+
+特権コンテナで良ければ NFS client が動く。特権/非特権の切り替えはコンテナ作成時に指定する。指定し忘れていればやり直し。
+
+特権コンテナにするとコンテナ作成時の `Nesting` のチェックが選択できなくなる。こっちは作成後に付与できるので一度作成した後に
+`Options` -> `Features` を edit で編集してチェックを足す。
+
+## lxc の root 以外で ping
+
+    sudo setcap cap_net_raw+p /bin/ping
+
+する。
+
 ## PHOTO ディレクトリのマウント
 
 samba/nfs をコンテナ側からマウントするのは手間がかかることが多いのでハイパーバイザ側でマウントしてそのディレクトリをコンテナ側に渡す。
