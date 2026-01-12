@@ -1,0 +1,32 @@
+sync_to_github:
+  variables:
+    SSHAGENT_ENV: "$CI_PROJECT_DIR/ci_sshagent.env"
+  stage: deploy
+  tags:
+    - self-hosted
+  script:
+    # 1. ssh-agent を起動し、CI 変数から秘密鍵を読み込む
+    - ssh-agent -s > $SSHAGENT_ENV
+    - . $SSHAGENT_ENV
+    - chmod 600 "$GITHUB_PRIVATE_KEY"
+    - ssh-add "$GITHUB_PRIVATE_KEY"
+
+    # 2. 既知のホストに追加（対話プロンプト防止）
+    - mkdir -p ~/.ssh
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+    # 3. リモートを追加して Force Push
+    # すでに github というリモートが存在する場合のエラーを避けるため一度削除
+    - git remote remove github || true
+    - git remote add github git@github.com:s-ymgch228/maint
+    - git push github HEAD:refs/heads/main --force
+  after_script:
+    - |
+      if [ -f $SSHAGENT_ENV ]; then
+        # ファイルから変数を現在のセッションに読み込む
+        # ssh-agent -s の出力はそのままシェルスクリプトとして実行可能
+        . $SSHAGENT_ENV
+        ssh-agent -k
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
