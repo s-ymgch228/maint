@@ -107,6 +107,15 @@ server {
 EOS
 ```
 
+証明書を作る
+```
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+  -keyout /etc/nginx/ssl/gitea.key \
+  -out /etc/nginx/ssl/gitea.crt \
+  -subj "/CN=gitea-mx0.home" \
+  -addext "subjectAltName = DNS:gitea-mx0.home"
+```
+
 nginx の設定チェック
 
 ```
@@ -127,4 +136,52 @@ HTTP_ADDR = 127.0.0.1
 HTTP_PORT = 80
 EOS
 chown git /etc/gitea/app.ini
+```
+
+## runner を立てる
+
+gitea 側で Actions を有効化する。 /etc/gitea/app.init に書いておく。
+```
+[actions]
+ENABLED = true
+```
+
+runner のホストにバイナリを入れる。最新版は `https://dl.gitea.com/act_runner/` を見る。
+```
+wget -O act_runner https://dl.gitea.com/act_runner/0.2.13/act_runner-0.2.13-linux-amd64
+chmod +x act_runner
+sudo mv act_runner /usr/local/bin/
+act_runner register
+```
+
+コンフィグを作って登録する
+
+```
+mkdir -p /var/lib/gitea
+chwon git:git /var/lib/gitea
+cd /var/lib/gitea
+sudo -u git /usr/local/bin/act_runner generate-config  > /var/lib/gitea/config.yaml
+# 自己証明書を使うので insecure : false -> true
+# labels がデフォルト値なので適当に書き換える 
+sudo -u git /usr/local/bin/act_runner register --config /var/lib/gitea/config.yaml
+```
+
+```
+cat > /etc/systemd/system/act_runner.service  <<'EOS'
+[Unit]
+Description=Gitea Actions Runner
+After=network.target gitea.service
+
+[Service]
+User=git
+Group=git
+WorkingDirectory=/var/lib/gitea
+ExecStart=/usr/local/bin/act_runner daemon --config /var/lib/gitea/config.yaml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOS
+systemctl daemon-reload
 ```
