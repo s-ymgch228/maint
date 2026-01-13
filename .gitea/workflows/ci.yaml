@@ -1,0 +1,34 @@
+
+name: backup to github.com
+on:
+  push:
+    branches:
+      - master
+env:
+  KEY: "./sshkey"
+
+jobs:
+  push-github:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_SSL_NO_VERIFY: true
+        with:
+          clean: true
+          set-safe-directory: true
+          fetch-depth: 0
+      - name: setup ssh key
+        run: |
+          echo "${{ secrets.SSH_PRIVATEKEY_GITHUB }}" | tr -d '\r' > $KEY
+          chmod 600 $KEY
+      - name: push to github.com
+        env:
+          GIT_SSH_COMMAND: "ssh -i $KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+        run: |
+          git remote remove github || true
+          git remote add github git@github.com:s-ymgch228/maint.git
+          git push github HEAD:refs/heads/master --force
+      - name: cleanup
+        if: always()
+        run: rm -f $KEY
