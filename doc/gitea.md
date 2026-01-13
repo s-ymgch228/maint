@@ -185,3 +185,9 @@ WantedBy=multi-user.target
 EOS
 systemctl daemon-reload
 ```
+
+actions とかを使う場合は Node.js が必要
+```
+apt update
+apt install -y nodejs npm
+```
