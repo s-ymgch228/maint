@@ -23,10 +23,11 @@ git ユーザを作っておく
 ```
 adduser \
    --system \
-   --shell /bin/bash \
-   --gecos 'Git Version Control' \
    --group \
-   --disabled-password \
+   --shell /bin/bash \
+   --create-home \
+   --home /home/git \
+   --gecos 'Git Version Control' \
    git
 ```
 
@@ -122,7 +123,7 @@ cat > /etc/gitea/app.ini <<'EOS'
 PROTOCOL = http
 DOMAIN   = gitea-mx0.home
 ROOT_URL = https://gitea-mx0.home/
-HTTP_ADDR = 0.0.0.0
+HTTP_ADDR = 127.0.0.1
 HTTP_PORT = 80
 EOS
 chown git /etc/gitea/app.ini
